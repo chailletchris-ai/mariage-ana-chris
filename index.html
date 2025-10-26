@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mariage Ana & Chris 2027</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-amber-50 min-h-screen">
+    <div id="app" class="p-4"></div>
+
+    <script>
+        let invites = JSON.parse(localStorage.getItem('wedding-invites') || '[]');
+        let depenses = JSON.parse(localStorage.getItem('wedding-depenses') || '[]');
+        let taches = JSON.parse(localStorage.getItem('wedding-taches') || '[]');
+        let activeTab = 'invites';
+
+        // Pré-remplir les dépenses si vide
+        if (depenses.length === 0) {
+            depenses = [
+                { id: 1, poste: 'Traiteur Ludon-Médoc', prevu: 0, reel: 0 },
+                { id: 2, poste: 'Traiteur Javéa', prevu: 0, reel: 0 },
+                { id: 3, poste: 'Lieu/Salle Ludon-Médoc', prevu: 0, reel: 0 },
+                { id: 4, poste: 'Lieu/Salle Javéa', prevu: 0, reel: 0 },
+                { id: 5, poste: 'Décoration', prevu: 0, reel: 0 },
+                { id: 6, poste: 'Photographe/Vidéaste', prevu: 0, reel: 0 },
+                { id: 7, poste: 'Musique/DJ/Orchestre', prevu: 0, reel: 0 },
+                { id: 8, poste: 'Tenue mariée', prevu: 0, reel: 0 },
+                { id: 9, poste: 'Tenue marié', prevu: 0, reel: 0 },
+                { id: 10, poste: 'Alliances', prevu: 0, reel: 0 },
+                { id: 11, poste: 'Fleurs et bouquets', prevu: 0, reel: 0 },
+                { id: 12, poste: 'Faire-part et papeterie', prevu: 0, reel: 0 },
+                { id: 13, poste: 'Transport invités', prevu: 0, reel: 0 },
+                { id: 14, poste: 'Hébergement invités', prevu: 0, reel: 0 },
+                { id: 15, poste: 'Voyage de noces', prevu: 0, reel: 0 },
+                { id: 16, poste: 'Coiffure et maquillage', prevu: 0, reel: 0 },
+                { id: 17, poste: 'Vin d\'honneur', prevu: 0, reel: 0 },
+                { id: 18, poste: 'Gâteau de mariage', prevu: 0, reel: 0 },
+                { id: 19, poste: 'Cadeaux invités', prevu: 0, reel: 0 },
+                { id: 20, poste: 'Animation (enfants, jeux...)', prevu: 0, reel: 0 }
+            ];
+            save();
+        }
+
+        function save() {
+            localStorage.setItem('wedding-invites', JSON.stringify(invites));
+            localStorage.setItem('wedding-depenses', JSON.stringify(depenses));
+            localStorage.setItem('wedding-taches', JSON.stringify(taches));
+        }
+
+        function render() {
+            const stats = {
+                total: invites.length,
+                ludon: invites.filter(i => i.ludon).length,
+                javea: invites.filter(i => i.javea).length,
+                confirmes: invites.filter(i => i.confirme === 'Oui').length,
+                budgetPrevu: depenses.reduce((s, d) => s + Number(d.prevu || 0), 0),
+                budgetReel: depenses.reduce((s, d) => s + Number(d.reel || 0), 0),
+                tachesOk: taches.filter(t => t.fait).length
+            };
+
+            document.getElementById('app').innerHTML = `
+                <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-xl">
+                    <div class="bg-gradient-to-r from-gray-800 to-amber-700 p-6 text-white">
+                        <h1 class="text-3xl font-bold">💒 Mariage Ana & Chris</h1>
+                        <p class="text-amber-100">2027 - Ludon-Médoc & Javéa</p>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-4 p-4 bg-gray-50">
+                        <div class="bg-white p-3 rounded shadow text-center border-t-4 border-amber-600">
+                            <div class="text-2xl font-bold text-gray-800">${stats.total}</div>
+                            <div class="text-xs text-gray-600">Invités</div>
+                        </div>
+                        <div class="bg-white p-3 rounded shadow text-center border-t-4 border-amber-600">
+                            <div class="text-2xl font-bold text-gray-800">${stats.confirmes}</div>
+                            <div class="text-xs text-gray-600">Confirmés</div>
+                        </div>
+                        <div class="bg-white p-3 rounded shadow text-center border-t-4 border-amber-700">
+                            <div class="text-2xl font-bold text-amber-700">${stats.budgetPrevu}€</div>
+                            <div class="text-xs text-gray-600">Budget</div>
+                        </div>
+                        <div class="bg-white p-3 rounded shadow text-center border-t-4 border-gray-700">
+                            <div class="text-2xl font-bold text-gray-700">${stats.tachesOk}/${taches.length}</div>
+                            <div class="text-xs text-gray-600">Tâches</div>
+                        </div>
+                    </div>
+
+                    <div class="flex border-b">
+                        <button onclick="changeTab('invites')" class="px-6 py-3 font-medium ${activeTab === 'invites' ? 'border-b-2 border-amber-600 text-amber-700' : 'text-gray-600'}">
+                            👥 Invités
+                        </button>
+                        <button onclick="changeTab('budget')" class="px-6 py-3 font-medium ${activeTab === 'budget' ? 'border-b-2 border-amber-600 text-amber-700' : 'text-gray-600'}">
+                            💰 Budget
+                        </button>
+                        <button onclick="changeTab('taches')" class="px-6 py-3 font-medium ${activeTab === 'taches' ? 'border-b-2 border-amber-600 text-amber-700' : 'text-gray-600'}">
+                            ✅ Tâches
+                        </button>
+                    </div>
+
+                    <div class="p-6">
+                        ${activeTab === 'invites' ? renderInvites() : ''}
+                        ${activeTab === 'budget' ? renderBudget() : ''}
+                        ${activeTab === 'taches' ? renderTaches() : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderInvites() {
+            return `
+                <button onclick="addInvite()" class="mb-4 bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700">
+                    ➕ Ajouter un invité
+                </button>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border p-2">Nom</th>
+                                <th class="border p-2">Prénom</th>
+                                <th class="border p-2">Téléphone</th>
+                                <th class="border p-2">Email</th>
+                                <th class="border p-2">Adresse</th>
+                                <th class="border p-2">Catégorie</th>
+                                <th class="border p-2">Ludon</th>
+                                <th class="border p-2">Javéa</th>
+                                <th class="border p-2">Confirmé</th>
+                                <th class="border p-2"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${invites.map((inv, idx) => `
+                                <tr>
+                                    <td class="border p-1">
+                                        <input value="${inv.nom || ''}" onchange="updateInvite(${idx}, 'nom', this.value)" class="w-full px-2 py-1 border rounded text-xs">
+                                    </td>
+                                    <td class="border p-1">
+                                        <input value="${inv.prenom || ''}" onchange="updateInvite(${idx}, 'prenom', this.value)" class="w-full px-2 py-1 border rounded text-xs">
+                                    </td>
+                                    <td class="border p-1">
+                                        <input value="${inv.telephone || ''}" onchange="updateInvite(${idx}, 'telephone', this.value)" class="w-full px-2 py-1 border rounded text-xs">
+                                    </td>
+                                    <td class="border p-1">
+                                        <input value="${inv.email || ''}" onchange="updateInvite(${idx}, 'email', this.value)" class="w-full px-2 py-1 border rounded text-xs">
+                                    </td>
+                                    <td class="border p-1">
+                                        <input value="${inv.adresse || ''}" onchange="updateInvite(${idx}, 'adresse', this.value)" class="w-full px-2 py-1 border rounded text-xs">
+                                    </td>
+                                    <td class="border p-1">
+                                        <select onchange="updateInvite(${idx}, 'categorie', this.value)" class="w-full px-2 py-1 border rounded text-xs">
+                                            <option ${inv.categorie === 'Adulte Famille' ? 'selected' : ''}>Adulte Famille</option>
+                                            <option ${inv.categorie === 'Enfant Famille' ? 'selected' : ''}>Enfant Famille</option>
+                                            <option ${inv.categorie === 'Adulte Amis' ? 'selected' : ''}>Adulte Amis</option>
+                                            <option ${inv.categorie === 'Enfant Amis' ? 'selected' : ''}>Enfant Amis</option>
+                                            <option ${inv.categorie === 'Adulte Collègues' ? 'selected' : ''}>Adulte Collègues</option>
+                                            <option ${inv.categorie === 'Autre' ? 'selected' : ''}>Autre</option>
+                                        </select>
+                                    </td>
+                                    <td class="border p-1 text-center">
+                                        <input type="checkbox" ${inv.ludon ? 'checked' : ''} onchange="updateInvite(${idx}, 'ludon', this.checked)" class="w-4 h-4">
+                                    </td>
+                                    <td class="border p-1 text-center">
+                                        <input type="checkbox" ${inv.javea ? 'checked' : ''} onchange="updateInvite(${idx}, 'javea', this.checked)" class="w-4 h-4">
+                                    </td>
+                                    <td class="border p-1">
+                                        <select onchange="updateInvite(${idx}, 'confirme', this.value)" class="w-full px-2 py-1 border rounded text-xs">
+                                            <option ${inv.confirme === 'Non' ? 'selected' : ''}>Non</option>
+                                            <option ${inv.confirme === 'Oui' ? 'selected' : ''}>Oui</option>
+                                            <option ${inv.confirme === 'Décliné' ? 'selected' : ''}>Décliné</option>
+                                        </select>
+                                    </td>
+                                    <td class="border p-1 text-center">
+                                        <button onclick="deleteInvite(${idx})" class="text-red-500 hover:text-red-700">🗑️</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderBudget() {
+            const total = depenses.reduce((s, d) => s + Number(d.prevu || 0), 0);
+            const reel = depenses.reduce((s, d) => s + Number(d.reel || 0), 0);
+            return `
+                <button onclick="addDepense()" class="mb-4 bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">
+                    ➕ Ajouter une dépense
+                </button>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border p-2">Poste</th>
+                                <th class="border p-2">Budget prévu</th>
+                                <th class="border p-2">Montant réel</th>
+                                <th class="border p-2">Différence</th>
+                                <th class="border p-2"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${depenses.map((dep, idx) => {
+                                const diff = Number(dep.prevu || 0) - Number(dep.reel || 0);
+                                return `
+                                    <tr>
+                                        <td class="border p-1">
+                                            <input value="${dep.poste}" onchange="updateDepense(${idx}, 'poste', this.value)" class="w-full px-2 py-1 border rounded">
+                                        </td>
+                                        <td class="border p-1">
+                                            <input type="number" value="${dep.prevu}" onchange="updateDepense(${idx}, 'prevu', this.value)" class="w-full px-2 py-1 border rounded">
+                                        </td>
+                                        <td class="border p-1">
+                                            <input type="number" value="${dep.reel}" onchange="updateDepense(${idx}, 'reel', this.value)" class="w-full px-2 py-1 border rounded">
+                                        </td>
+                                        <td class="border p-1 text-right font-bold ${diff >= 0 ? 'text-green-700' : 'text-red-700'}">
+                                            ${diff.toFixed(0)}€
+                                        </td>
+                                        <td class="border p-1 text-center">
+                                            <button onclick="deleteDepense(${idx})" class="text-red-500 hover:text-red-700">🗑️</button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                        <tfoot>
+                            <tr class="bg-gray-100 font-bold">
+                                <td class="border p-2">TOTAL</td>
+                                <td class="border p-2 text-right">${total.toFixed(0)}€</td>
+                                <td class="border p-2 text-right">${reel.toFixed(0)}€</td>
+                                <td class="border p-2 text-right ${(total - reel) >= 0 ? 'text-green-700' : 'text-red-700'}">
+                                    ${(total - reel).toFixed(0)}€
+                                </td>
+                                <td class="border p-2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderTaches() {
+            return `
+                <button onclick="addTache()" class="mb-4 bg-amber-700 text-white px-4 py-2 rounded hover:bg-amber-800">
+                    ➕ Ajouter une tâche
+                </button>
+                <div class="space-y-2">
+                    ${taches.map((tache, idx) => `
+                        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded">
+                            <input type="checkbox" ${tache.fait ? 'checked' : ''} onchange="updateTache(${idx}, 'fait', this.checked)" class="w-5 h-5">
+                            <input value="${tache.nom || ''}" onchange="updateTache(${idx}, 'nom', this.value)" 
+                                class="flex-1 px-3 py-2 border rounded ${tache.fait ? 'line-through text-gray-400' : ''}" 
+                                placeholder="Nom de la tâche">
+                            <button onclick="deleteTache(${idx})" class="text-red-500 hover:text-red-700">🗑️</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function changeTab(tab) {
+            activeTab = tab;
+            render();
+        }
+
+        function addInvite() {
+            invites.push({ 
+                id: Date.now(), 
+                nom: '', 
+                prenom: '', 
+                telephone: '', 
+                email: '', 
+                adresse: '', 
+                categorie: 'Adulte Famille', 
+                ludon: false, 
+                javea: false, 
+                confirme: 'Non' 
+            });
+            save();
+            render();
+        }
+
+        function updateInvite(idx, field, value) {
+            invites[idx][field] = value;
+            save();
+            render();
+        }
+
+        function deleteInvite(idx) {
+            if (confirm('Supprimer cet invité ?')) {
+                invites.splice(idx, 1);
+                save();
+                render();
+            }
+        }
+
+        function addDepense() {
+            depenses.push({ id: Date.now(), poste: '', prevu: 0, reel: 0 });
+            save();
+            render();
+        }
+
+        function updateDepense(idx, field, value) {
+            depenses[idx][field] = value;
+            save();
+            render();
+        }
+
+        function deleteDepense(idx) {
+            if (confirm('Supprimer cette dépense ?')) {
+                depenses.splice(idx, 1);
+                save();
+                render();
+            }
+        }
+
+        function addTache() {
+            taches.push({ id: Date.now(), nom: '', fait: false });
+            save();
+            render();
+        }
+
+        function updateTache(idx, field, value) {
+            taches[idx][field] = value;
+            save();
+            render();
+        }
+
+        function deleteTache(idx) {
+            if (confirm('Supprimer cette tâche ?')) {
+                taches.splice(idx, 1);
+                save();
+                render();
+            }
+        }
+
+        // Premier rendu
+        render();
+    </script>
+</body>
+</html>
